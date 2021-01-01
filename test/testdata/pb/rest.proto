@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package rest;
+
+option go_package = ".;pb";
+
+import "google/api/annotations.proto";
+import "bluekaki/vv/options.proto";
+import "entity.proto";
+
+service DummyService {
+  rpc Signup(entity.HelloRequest) returns (entity.HelloReply) {
+    option (bluekaki.vv.options.do_journal) = true;
+    option (google.api.http) = {
+      post : "/v1/signup/{track_id}"
+      body : "*"
+    };
+  }
+
+  rpc Dummy(entity.HelloRequest) returns (entity.HelloReply) {
+    option (bluekaki.vv.options.do_journal) = true;
+    option (google.api.http) = {
+      post : "/v1/dummy"
+      body : "*"
+    };
+  }
+}

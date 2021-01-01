@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package rpc;
+
+option go_package = ".;pb";
+
+import "bluekaki/vv/options.proto";
+import "entity.proto";
+
+service HelloService {
+  rpc Unary(entity.HelloRequest) returns (entity.HelloReply) {
+    option (bluekaki.vv.options.do_journal) = true;
+  }
+
+  rpc Stream(stream entity.HelloRequest) returns (stream entity.HelloReply) {
+    option (bluekaki.vv.options.do_journal) = true;
+  }
+}

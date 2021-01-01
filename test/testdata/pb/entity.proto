@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package entity;
+
+option go_package = ".;pb";
+
+import "google/protobuf/timestamp.proto";
+
+message HelloRequest {
+  string track_id = 1;
+  string nick = 2;
+  string mobile = 3;
+  string message = 4;
+  google.protobuf.Timestamp ts = 5;
+}
+
+message HelloReply {
+  string serial_key = 1;
+  string message = 2;
+  google.protobuf.Timestamp ts = 3;
+}

@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package bluekaki.vv.options;
+
+option go_package = "github.com/bluekaki/vv/options";
+
+import "google/protobuf/descriptor.proto";
+
+extend google.protobuf.MethodOptions { optional bool do_journal = 74370; }
