@@ -185,7 +185,7 @@ func (s *ServerInterceptor) UnaryInterceptor(ctx context.Context, req interface{
 	methodName := fullMethod[2]
 
 	doJournal := false
-	if option := proto.GetExtension(FileDescriptor.Options(info.FullMethod), options.E_DoJournal); option != nil && option.(bool) {
+	if option := proto.GetExtension(FileDescriptor.Options(info.FullMethod), options.E_Journal); option != nil && option.(bool) {
 		doJournal = true
 	}
 

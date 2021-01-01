@@ -9,10 +9,10 @@ import "entity.proto";
 
 service HelloService {
   rpc Unary(entity.HelloRequest) returns (entity.HelloReply) {
-    option (bluekaki.vv.options.do_journal) = true;
+    option (bluekaki.vv.options.journal) = true;
   }
 
   rpc Stream(stream entity.HelloRequest) returns (stream entity.HelloReply) {
-    option (bluekaki.vv.options.do_journal) = true;
+    option (bluekaki.vv.options.journal) = true;
   }
 }

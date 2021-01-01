@@ -12,5 +12,5 @@ func ParseFileDescriptorP(descriptor protoreflect.FileDescriptor) {
 		panic("file descriptor required")
 	}
 
-	interceptor.FileDescriptor.Parse(descriptor)
+	interceptor.FileDescriptor.ParseP(descriptor)
 }

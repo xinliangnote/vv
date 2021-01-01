@@ -13,9 +13,6 @@ import (
 	"google.golang.org/grpc/keepalive"
 )
 
-// Payload rest or grpc payload
-type Payload = interceptor.Payload
-
 // VerifyAuth verify auth legality
 type VerifyAuth = interceptor.VerifyAuth
 
