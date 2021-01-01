@@ -6,8 +6,10 @@ option go_package = "github.com/bluekaki/vv/options";
 
 import "google/protobuf/descriptor.proto";
 
+message Validator { string name = 1; }
+
 extend google.protobuf.MethodOptions {
   optional bool journal = 74370;
-  optional bool authorization = 74371;
-  optional bool proxy_authorization = 74372;
+  optional Validator authorization = 74371;
+  optional Validator proxy_authorization = 74372;
 }
