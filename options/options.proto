@@ -6,4 +6,8 @@ option go_package = "github.com/bluekaki/vv/options";
 
 import "google/protobuf/descriptor.proto";
 
-extend google.protobuf.MethodOptions { optional bool do_journal = 74370; }
+extend google.protobuf.MethodOptions {
+  optional bool journal = 74370;
+  optional bool authorization = 74371;
+  optional bool proxy_authorization = 74372;
+}
