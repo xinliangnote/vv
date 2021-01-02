@@ -32,7 +32,7 @@ func restNormal() {
 		logger.Fatal("rest normal new request err", zap.Error(err))
 	}
 
-	proxyAuthorization, date, err := signature.Generate("webapi", auth.ToMethod(http.MethodPost), "/v1/signup/0987654321", payload)
+	proxyAuthorization, date, err := signature.Generate("webapi", auth.MethodPost, "/v1/signup/0987654321", payload)
 	if err != nil {
 		logger.Fatal("rest normal do signature err", zap.Error(err))
 	}
@@ -64,7 +64,7 @@ func restError() {
 		logger.Fatal("rest error new request err", zap.Error(err))
 	}
 
-	authorization, date, err := signature.Generate("webapi", auth.ToMethod(http.MethodPost), "/v1/signup/0987654321", payload)
+	authorization, date, err := signature.Generate("webapi", auth.MethodPost, "/v1/signup/0987654321", payload)
 	if err != nil {
 		logger.Fatal("rest error do signature err", zap.Error(err))
 	}
@@ -96,7 +96,7 @@ func restPanic() {
 		logger.Fatal("rest panic new request err", zap.Error(err))
 	}
 
-	authorization, date, err := signature.Generate("webapi", auth.ToMethod(http.MethodPost), "/v1/signup/0987654321", payload)
+	authorization, date, err := signature.Generate("webapi", auth.MethodPost, "/v1/signup/0987654321", payload)
 	if err != nil {
 		logger.Fatal("rest panic do signature err", zap.Error(err))
 	}
@@ -145,7 +145,7 @@ func restDummy(ctx context.Context) {
 			return
 		}
 
-		proxyAuthorization, date, err := signature.Generate("webapi", auth.ToMethod(http.MethodPost), "/v1/dummy", payload)
+		proxyAuthorization, date, err := signature.Generate("webapi", auth.MethodPost, "/v1/dummy", payload)
 		if err != nil {
 			logger.Error("rest dummy do signature err", zap.Error(err))
 			return

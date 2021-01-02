@@ -13,9 +13,6 @@ import (
 	"google.golang.org/grpc/keepalive"
 )
 
-// VerifyAuth verify auth legality
-type VerifyAuth = interceptor.VerifyAuth
-
 var (
 	defaultEnforcementPolicy = &keepalive.EnforcementPolicy{
 		MinTime:             5 * time.Second,
@@ -38,7 +35,6 @@ type option struct {
 	credential        credentials.TransportCredentials
 	enforcementPolicy *keepalive.EnforcementPolicy
 	keepalive         *keepalive.ServerParameters
-	verifyAuth        VerifyAuth
 }
 
 // WithCredential setup credential for tls
@@ -59,13 +55,6 @@ func WithEnforcementPolicy(enforcementPolicy *keepalive.EnforcementPolicy) Optio
 func WithKeepAlive(keepalive *keepalive.ServerParameters) Option {
 	return func(opt *option) {
 		opt.keepalive = keepalive
-	}
-}
-
-// WithVerifyAuth setup verify auth builder
-func WithVerifyAuth(verifyAuth VerifyAuth) Option {
-	return func(opt *option) {
-		opt.verifyAuth = verifyAuth
 	}
 }
 
@@ -90,7 +79,7 @@ func New(logger *zap.Logger, options ...Option) (*grpc.Server, error) {
 		keepalive = opt.keepalive
 	}
 
-	serverInterceptor := interceptor.NewServerInterceptor(opt.verifyAuth, logger)
+	serverInterceptor := interceptor.NewServerInterceptor(logger)
 
 	serverOptions := []grpc.ServerOption{
 		grpc.KeepaliveEnforcementPolicy(*enforcementPolicy),

@@ -54,3 +54,7 @@ func Error(c codes.Code, msg string, err error) error {
 func ForwardedByGrpcGateway(ctx context.Context) bool {
 	return interceptor.ForwardedByGrpcGateway(ctx)
 }
+
+func Userinfo(ctx context.Context) interface{} {
+	return ctx.Value(interceptor.SessionUserinfo{})
+}

@@ -11,11 +11,8 @@ import "entity.proto";
 service DummyService {
   rpc Signup(entity.HelloRequest) returns (entity.HelloReply) {
     option (bluekaki.vv.options.journal) = true;
-    option (bluekaki.vv.options.authorization) = {
-      name : "xx"
-    };
     option (bluekaki.vv.options.proxy_authorization) = {
-      name : "xx"
+      name : "signature_handler"
     };
     option (google.api.http) = {
       post : "/v1/signup/{track_id}"
@@ -25,6 +22,12 @@ service DummyService {
 
   rpc Dummy(entity.HelloRequest) returns (entity.HelloReply) {
     option (bluekaki.vv.options.journal) = true;
+    option (bluekaki.vv.options.authorization) = {
+      name : "userinfo_handler"
+    };
+    option (bluekaki.vv.options.proxy_authorization) = {
+      name : "signature_handler"
+    };
     option (google.api.http) = {
       post : "/v1/dummy"
       body : "*"

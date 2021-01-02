@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net"
 	"time"
@@ -17,27 +18,28 @@ import (
 	"google.golang.org/grpc/codes"
 )
 
-func newServer() *grpc.Server {
-	server, err := vvs.New(logger, vvs.WithVerifyAuth(func(authorization, proxyAuthorization string, payload vvs.Payload) bool {
-		// logger.Info(">>>>>>>>>>>>>> ", zap.String("authorization", authorization), zap.String("proxyAuthorization", proxyAuthorization), zap.String("payload", fmt.Sprintf("%+v", payload)))
+func init() {
+	vvs.RegisteAuthorizationValidator("userinfo_handler", func(authorization string, payload vvs.Payload) (userinfo interface{}, err error) {
+		if authorization != "dummy token" && authorization != "minami" {
+			return nil, errors.New("illegal authorization")
+		}
 
+		return &struct{ UserName string }{UserName: "minami"}, nil
+	})
+
+	vvs.RegisteProxyAuthorizationValidator("signature_handler", func(proxyAuthorization string, payload vvs.Payload) (ok bool, err error) {
 		method := auth.MethodGRPC
 		if payload.ForwardedByGrpcGateway() {
 			method = auth.ToMethod(payload.Method())
 		}
 
-		_, ok, err := signature.Verify(proxyAuthorization, payload.Date(), method, payload.URI(), []byte(payload.Body()))
-		if err != nil {
-			logger.Error("verify signature err", zap.String("journal_id", payload.JournalID()), zap.Error(err))
-			return false
-		}
-		if !ok {
-			logger.Error("signature not match", zap.String("journal_id", payload.JournalID()))
-			return false
-		}
+		_, ok, err = signature.Verify(proxyAuthorization, payload.Date(), method, payload.URI(), []byte(payload.Body()))
+		return
+	})
+}
 
-		return authorization == "dummy token" || authorization == "minami"
-	}))
+func newServer() *grpc.Server {
+	server, err := vvs.New(logger)
 	if err != nil {
 		logger.Fatal("new server err", zap.Error(err))
 	}
@@ -114,6 +116,8 @@ type dummyServer struct {
 }
 
 func (d *dummyServer) Signup(ctx context.Context, req *pb.HelloRequest) (*pb.HelloReply, error) {
+	fmt.Printf(">>>>>>>>> Signup Userinfo: %+v\n", vv.Userinfo(ctx))
+
 	if req.Message == "error" {
 		err := errors.New("a dummy error occurs")
 		return nil, vv.Error(codes.Internal, err.Error(), err)
@@ -134,6 +138,8 @@ func (d *dummyServer) Signup(ctx context.Context, req *pb.HelloRequest) (*pb.Hel
 }
 
 func (d *dummyServer) Dummy(ctx context.Context, req *pb.HelloRequest) (*pb.HelloReply, error) {
+	fmt.Printf(">>>>>>>>> Dummy Userinfo: %+v\n", vv.Userinfo(ctx))
+
 	time.Sleep(time.Millisecond * 50)
 
 	return &pb.HelloReply{

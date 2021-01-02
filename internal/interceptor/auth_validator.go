@@ -5,7 +5,7 @@ import (
 )
 
 type userinfoHandler func(authorization string, payload Payload) (userinfo interface{}, err error)
-type signatureHandler func(ProxyAuthorization string, payload Payload) (ok bool, err error)
+type signatureHandler func(proxyAuthorization string, payload Payload) (ok bool, err error)
 
 // Validator authorization & proxy_authorization validator
 var Validator = &validator{
@@ -19,6 +19,7 @@ type validator struct {
 	proxyAuth map[string]signatureHandler
 }
 
+// RegisteAuthorizationValidator some handler(s) for validate authorization and return userinfo
 func (v *validator) RegisteAuthorizationValidator(name string, handler userinfoHandler) {
 	v.Lock()
 	defer v.Unlock()
@@ -33,6 +34,7 @@ func (v *validator) RegisteProxyAuthorizationValidator(name string, handler sign
 	v.proxyAuth[name] = handler
 }
 
+// RegisteProxyAuthorizationValidator some handler(s) for validate signature
 func (v *validator) AuthorizationValidator(name string) userinfoHandler {
 	v.RLock()
 	defer v.RUnlock()

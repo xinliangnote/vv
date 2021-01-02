@@ -47,6 +47,9 @@ const (
 	XForwardedHost = "x-forwarded-host"
 )
 
+// SessionUserinfo mark userinfo in context
+type SessionUserinfo struct{}
+
 var toLoggedMetadata = map[string]bool{
 	Authorization:      true,
 	ProxyAuthorization: true,
@@ -151,21 +154,16 @@ func (g *grpcPayload) Body() string {
 
 func (g *grpcPayload) t() {}
 
-// VerifyAuth verify auth legality
-type VerifyAuth func(auth, proxyAuth string, payload Payload) bool
-
 // NewServerInterceptor create a server interceptor
-func NewServerInterceptor(verifyAuth VerifyAuth, logger *zap.Logger) *ServerInterceptor {
+func NewServerInterceptor(logger *zap.Logger) *ServerInterceptor {
 	return &ServerInterceptor{
-		verifyAuth: verifyAuth,
-		logger:     logger,
+		logger: logger,
 	}
 }
 
 // ServerInterceptor the server's interceptor
 type ServerInterceptor struct {
-	verifyAuth VerifyAuth
-	logger     *zap.Logger
+	logger *zap.Logger
 }
 
 func (s *ServerInterceptor) journalID() string {
@@ -185,7 +183,7 @@ func (s *ServerInterceptor) UnaryInterceptor(ctx context.Context, req interface{
 	methodName := fullMethod[2]
 
 	doJournal := false
-	if option := proto.GetExtension(FileDescriptor.Options(info.FullMethod), options.E_Journal); option != nil && option.(bool) {
+	if proto.GetExtension(FileDescriptor.Options(info.FullMethod), options.E_Journal).(bool) {
 		doJournal = true
 	}
 
@@ -274,48 +272,73 @@ func (s *ServerInterceptor) UnaryInterceptor(ctx context.Context, req interface{
 	meta.Set(JournalID, journalID)
 	ctx = metadata.NewOutgoingContext(ctx, meta)
 
-	if s.verifyAuth != nil {
-		var auth, proxyAuth string
+	var (
+		authorizationValidator      userinfoHandler
+		proxyAuthorizationValidator signatureHandler
+	)
+	if option := proto.GetExtension(FileDescriptor.Options(info.FullMethod), options.E_Authorization).(*options.Validator); option != nil {
+		authorizationValidator = Validator.AuthorizationValidator(option.Name)
+	}
+	if option := proto.GetExtension(FileDescriptor.Options(info.FullMethod), options.E_ProxyAuthorization).(*options.Validator); option != nil {
+		proxyAuthorizationValidator = Validator.ProxyAuthorizationValidator(option.Name)
+	}
 
-		if authHeader := meta.Get(Authorization); len(authHeader) != 0 {
-			auth = authHeader[0]
+	if authorizationValidator == nil && proxyAuthorizationValidator == nil {
+		return handler(ctx, req)
+	}
+
+	var auth, proxyAuth string
+	if authHeader := meta.Get(Authorization); len(authHeader) != 0 {
+		auth = authHeader[0]
+	}
+	if proxyAuthHeader := meta.Get(ProxyAuthorization); len(proxyAuthHeader) != 0 {
+		proxyAuth = proxyAuthHeader[0]
+	}
+
+	var payload Payload
+	if forwardedByGrpcGateway(meta) {
+		payload = &restPayload{
+			journalID: journalID,
+			service:   serviceName,
+			date:      meta.Get(Date)[0],
+			method:    meta.Get(Method)[0],
+			uri:       meta.Get(URI)[0],
+			body:      meta.Get(Body)[0],
 		}
 
-		if proxyAuthHeader := meta.Get(ProxyAuthorization); len(proxyAuthHeader) != 0 {
-			proxyAuth = proxyAuthHeader[0]
+	} else {
+		payload = &grpcPayload{
+			journalID: journalID,
+			service:   serviceName,
+			date:      meta.Get(Date)[0],
+			method:    methodName,
+			uri:       info.FullMethod,
+			body: func() string {
+				if req == nil {
+					return ""
+				}
+
+				raw, _ := pbutil.ProtoMessage2JSON(req.(protoV1.Message))
+				return raw
+			}(),
 		}
+	}
 
-		var payload Payload
-		if forwardedByGrpcGateway(meta) {
-			payload = &restPayload{
-				journalID: journalID,
-				service:   serviceName,
-				date:      meta.Get(Date)[0],
-				method:    meta.Get(Method)[0],
-				uri:       meta.Get(URI)[0],
-				body:      meta.Get(Body)[0],
-			}
-
-		} else {
-			payload = &grpcPayload{
-				journalID: journalID,
-				service:   serviceName,
-				date:      meta.Get(Date)[0],
-				method:    methodName,
-				uri:       info.FullMethod,
-				body: func() string {
-					if req == nil {
-						return ""
-					}
-
-					raw, _ := pbutil.ProtoMessage2JSON(req.(protoV1.Message))
-					return raw
-				}(),
-			}
+	if authorizationValidator != nil {
+		userinfo, err := authorizationValidator(auth, payload)
+		if err != nil {
+			return nil, status.Error(codes.Unauthenticated, fmt.Sprintf("%+v", err))
 		}
+		ctx = context.WithValue(ctx, SessionUserinfo{}, userinfo)
+	}
 
-		if !s.verifyAuth(auth, proxyAuth, payload) {
-			return nil, status.Error(codes.Unauthenticated, codes.Unauthenticated.String())
+	if proxyAuthorizationValidator != nil {
+		ok, err := proxyAuthorizationValidator(proxyAuth, payload)
+		if err != nil {
+			return nil, status.Error(codes.PermissionDenied, fmt.Sprintf("%+v", err))
+		}
+		if !ok {
+			return nil, status.Error(codes.PermissionDenied, codes.PermissionDenied.String())
 		}
 	}
 
