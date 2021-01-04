@@ -12,4 +12,5 @@ extend google.protobuf.MethodOptions {
   optional bool journal = 74370;
   optional Validator authorization = 74371;
   optional Validator proxy_authorization = 74372;
+  optional string metrics_alias = 74373;
 }
