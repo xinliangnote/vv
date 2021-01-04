@@ -38,8 +38,8 @@ func init() {
 	})
 }
 
-func newServer() *grpc.Server {
-	server, err := vvs.New(logger)
+func newServer(grpcAddr, prometheusAddr string) *grpc.Server {
+	server, err := vvs.New(logger, vvs.WithPrometheus(prometheusAddr))
 	if err != nil {
 		logger.Fatal("new server err", zap.Error(err))
 	}

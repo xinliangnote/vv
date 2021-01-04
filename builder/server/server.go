@@ -35,6 +35,7 @@ type option struct {
 	credential        credentials.TransportCredentials
 	enforcementPolicy *keepalive.EnforcementPolicy
 	keepalive         *keepalive.ServerParameters
+	prometheusHandler func()
 }
 
 // WithCredential setup credential for tls
@@ -68,6 +69,11 @@ func New(logger *zap.Logger, options ...Option) (*grpc.Server, error) {
 	for _, f := range options {
 		f(opt)
 	}
+
+	if opt.prometheusHandler == nil {
+		panic("must enable prometheus metrics")
+	}
+	opt.prometheusHandler()
 
 	enforcementPolicy := defaultEnforcementPolicy
 	if opt.enforcementPolicy != nil {

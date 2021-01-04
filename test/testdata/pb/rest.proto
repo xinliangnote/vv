@@ -14,6 +14,7 @@ service DummyService {
     option (bluekaki.vv.options.proxy_authorization) = {
       name : "signature_handler"
     };
+    option (bluekaki.vv.options.metrics_alias) = "post /v1/signup";
     option (google.api.http) = {
       post : "/v1/signup/{track_id}"
       body : "*"

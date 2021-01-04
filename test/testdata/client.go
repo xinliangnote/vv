@@ -17,7 +17,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func newClient() {
+func newClient(grpcAddr string) {
 	conn, err := client.New(grpcAddr, client.WithSign(func(fullMethod string, message []byte) (authorization, date string, err error) {
 		return signature.Generate("webapi", auth.MethodGRPC, fullMethod, message)
 	}))

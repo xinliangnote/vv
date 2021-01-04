@@ -17,17 +17,17 @@ import (
 	"go.uber.org/zap"
 )
 
-func newRest() {
-	restNormal()
-	restError()
-	restPanic()
+func newRest(host string) {
+	restNormal(host)
+	restError(host)
+	restPanic(host)
 }
 
-func restNormal() {
+func restNormal(host string) {
 	fmt.Println("---------------------------------------------------------")
 
 	payload := []byte(`{"serial_key":"00000111","message":"normal"}`)
-	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1:8080/v1/signup/0987654321", bytes.NewReader(payload))
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://%s/v1/signup/0987654321", host), bytes.NewReader(payload))
 	if err != nil {
 		logger.Fatal("rest normal new request err", zap.Error(err))
 	}
@@ -55,11 +55,11 @@ func restNormal() {
 	logger.Info("rest normal", zap.String("resp", string(body)))
 }
 
-func restError() {
+func restError(host string) {
 	fmt.Println("---------------------------------------------------------")
 
 	payload := []byte(`{"serial_key":"00000111","message":"error"}`)
-	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1:8080/v1/signup/0987654321", bytes.NewReader(payload))
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://%s/v1/signup/0987654321", host), bytes.NewReader(payload))
 	if err != nil {
 		logger.Fatal("rest error new request err", zap.Error(err))
 	}
@@ -87,11 +87,11 @@ func restError() {
 	logger.Info("rest error", zap.String("resp", string(body)))
 }
 
-func restPanic() {
+func restPanic(host string) {
 	fmt.Println("---------------------------------------------------------")
 
 	payload := []byte(`{"serial_key":"00000111","message":"panic"}`)
-	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1:8080/v1/signup/0987654321", bytes.NewReader(payload))
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://%s/v1/signup/0987654321", host), bytes.NewReader(payload))
 	if err != nil {
 		logger.Fatal("rest panic new request err", zap.Error(err))
 	}
@@ -119,7 +119,7 @@ func restPanic() {
 	logger.Info("rest panic", zap.String("resp", string(body)))
 }
 
-func restDummy(ctx context.Context) {
+func restDummy(ctx context.Context, host string) {
 	var goroutines int
 	flag.IntVar(&goroutines, "goroutines", 1, "concurrent goroutines")
 	flag.Parse()
@@ -139,7 +139,7 @@ func restDummy(ctx context.Context) {
 		message := hex.EncodeToString(buf)
 
 		payload := []byte(fmt.Sprintf(template, trackID, message, time.Now().Format(time.RFC3339)))
-		req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1:8080/v1/dummy", bytes.NewReader(payload))
+		req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://%s/v1/dummy", host), bytes.NewReader(payload))
 		if err != nil {
 			logger.Error("rest dummy new request err", zap.Error(err))
 			return

@@ -13,11 +13,6 @@ import (
 var logger *zap.Logger
 var signature auth.Signature
 
-const (
-	grpcAddr = "127.0.0.1:7070"
-	restAddr = ":8080"
-)
-
 func init() {
 	var err error
 	signature, err = auth.NewSignature(auth.WithSHA256(), auth.WithSecrets(map[auth.Identifier]auth.Secret{
@@ -30,24 +25,24 @@ func init() {
 
 func main() {
 	var err error
-	if logger, err = zaplog.NewJSONLogger(zaplog.WithInfoLevel(), zaplog.WithFileP("/tmp/grpcgw/log")); err != nil {
+	if logger, err = zaplog.NewJSONLogger(zaplog.WithInfoLevel(), zaplog.WithFileP("/tmp/vv/log")); err != nil {
 		panic(err)
 	}
 	defer logger.Sync()
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	server := newServer()
-	gateway := newGateway(ctx)
+	server := newServer("127.0.0.1:7070", ":7080")
+	gateway := newGateway(ctx, "127.0.0.1:7070", ":8080")
 
 	time.Sleep(time.Second)
-	newClient()
+	newClient("127.0.0.1:7070")
 
 	time.Sleep(time.Second)
-	newRest()
+	newRest("127.0.0.1:8080")
 
 	time.Sleep(time.Second)
-	restDummy(ctx)
+	restDummy(ctx, "127.0.0.1:8080")
 
 	shutdown.NewHook().Close(
 		func() {

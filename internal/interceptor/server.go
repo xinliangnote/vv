@@ -18,6 +18,7 @@ import (
 	"github.com/koketama/pbutil"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
+	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -187,8 +188,6 @@ func (s *ServerInterceptor) UnaryInterceptor(ctx context.Context, req interface{
 		doJournal = true
 	}
 
-	// TODO metrics
-
 	defer func() { // double recover for safety
 		if p := recover(); p != nil {
 			s, _ := status.New(codes.Internal, fmt.Sprintf("got double panic => journal_id: %s, error: %+v", journalID, p)).WithDetails(&pb.Stack{Info: string(debug.Stack())})
@@ -204,68 +203,88 @@ func (s *ServerInterceptor) UnaryInterceptor(ctx context.Context, req interface{
 
 		grpc.SetHeader(ctx, metadata.Pairs(runtime.MetadataHeaderPrefix+JournalID, journalID))
 
-		if !doJournal {
-			return
-		}
-
-		journal := &pb.Journal{
-			Id: journalID,
-			Request: &pb.Request{
-				Restapi: ForwardedByGrpcGateway(ctx),
-				Method:  info.FullMethod,
-				Metadata: func() map[string]string {
-					meta, _ := metadata.FromIncomingContext(ctx)
-					mp := make(map[string]string)
-					for key, values := range meta {
-						if toLoggedMetadata[key] {
-							mp[key] = values[0]
+		if doJournal {
+			journal := &pb.Journal{
+				Id: journalID,
+				Request: &pb.Request{
+					Restapi: ForwardedByGrpcGateway(ctx),
+					Method:  info.FullMethod,
+					Metadata: func() map[string]string {
+						meta, _ := metadata.FromIncomingContext(ctx)
+						mp := make(map[string]string)
+						for key, values := range meta {
+							if toLoggedMetadata[key] {
+								mp[key] = values[0]
+							}
 						}
+						return mp
+					}(),
+					Payload: func() *anypb.Any {
+						if req == nil {
+							return nil
+						}
+
+						any, _ := anypb.New(req.(proto.Message))
+						return any
+					}(),
+				},
+				Response: &pb.Response{
+					Code: codes.OK.String(),
+					Payload: func() *anypb.Any {
+						if resp == nil {
+							return nil
+						}
+
+						any, _ := anypb.New(resp.(proto.Message))
+						return any
+					}(),
+				},
+				Success: err == nil,
+			}
+
+			if err != nil {
+				if s, ok := status.FromError(err); ok {
+					journal.Response.Code = s.Code().String()
+					journal.Response.Message = s.Message()
+
+					journal.Response.Details = make([]*anypb.Any, len(s.Details()))
+					for i, detail := range s.Details() {
+						journal.Response.Details[i], _ = anypb.New(detail.(proto.Message))
 					}
-					return mp
-				}(),
-				Payload: func() *anypb.Any {
-					if req == nil {
-						return nil
-					}
-
-					any, _ := anypb.New(req.(proto.Message))
-					return any
-				}(),
-			},
-			Response: &pb.Response{
-				Code: codes.OK.String(),
-				Payload: func() *anypb.Any {
-					if resp == nil {
-						return nil
-					}
-
-					any, _ := anypb.New(resp.(proto.Message))
-					return any
-				}(),
-			},
-			Success: err == nil,
-		}
-
-		if err != nil {
-			if s, ok := status.FromError(err); ok {
-				journal.Response.Code = s.Code().String()
-				journal.Response.Message = s.Message()
-
-				journal.Response.Details = make([]*anypb.Any, len(s.Details()))
-				for i, detail := range s.Details() {
-					journal.Response.Details[i], _ = anypb.New(detail.(proto.Message))
 				}
+			}
+
+			journal.CostSeconds = time.Since(ts).Seconds()
+
+			json, _ := pbutil.ProtoMessage2Map(journal)
+			if err == nil {
+				s.logger.Info("unary interceptor", zap.Any("journal", json))
+			} else {
+				s.logger.Error("unary interceptor", zap.Any("journal", json))
 			}
 		}
 
-		journal.CostSeconds = time.Since(ts).Seconds()
+		method := info.FullMethod
 
-		json, _ := pbutil.ProtoMessage2Map(journal)
-		if err == nil {
-			s.logger.Info("unary interceptor", zap.Any("journal", json))
-		} else {
-			s.logger.Error("unary interceptor", zap.Any("journal", json))
+		if http := proto.GetExtension(FileDescriptor.Options(info.FullMethod), annotations.E_Http).(*annotations.HttpRule); http != nil {
+			if x, ok := http.GetPattern().(*annotations.HttpRule_Get); ok {
+				method = "get " + x.Get
+			} else if x, ok := http.GetPattern().(*annotations.HttpRule_Put); ok {
+				method = "put " + x.Put
+			} else if x, ok := http.GetPattern().(*annotations.HttpRule_Post); ok {
+				method = "post " + x.Post
+			} else if x, ok := http.GetPattern().(*annotations.HttpRule_Delete); ok {
+				method = "delete " + x.Delete
+			} else if x, ok := http.GetPattern().(*annotations.HttpRule_Patch); ok {
+				method = "patch " + x.Patch
+			}
 		}
+
+		if alias := proto.GetExtension(FileDescriptor.Options(info.FullMethod), options.E_MetricsAlias).(string); alias != "" {
+			method = alias
+		}
+
+		MetricsRequestCost.WithLabelValues(method, status.Code(err).String()).Observe(time.Since(ts).Seconds())
 	}()
 
 	meta, _ := metadata.FromIncomingContext(ctx)

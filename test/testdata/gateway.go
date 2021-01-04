@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func newGateway(ctx context.Context) *http.Server {
+func newGateway(ctx context.Context, grpcAddr, restAddr string) *http.Server {
 	mux, options := gateway.New()
 	if err := pb.RegisterDummyServiceHandlerFromEndpoint(ctx, mux, grpcAddr, options); err != nil {
 		logger.Fatal("register gateway err", zap.Error(err))
