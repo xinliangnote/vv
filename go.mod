@@ -5,7 +5,7 @@ go 1.15
 require (
 	github.com/golang/protobuf v1.4.3
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.0.1
-	github.com/koketama/minami58 v0.1.1
+	github.com/koketama/minami58 v0.1.2
 	github.com/koketama/pbutil v0.1.6
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.9.0

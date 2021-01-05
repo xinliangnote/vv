@@ -218,8 +218,8 @@ github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7V
 github.com/julienschmidt/httprouter v1.3.0/go.mod h1:JR6WtHb+2LUe8TCKY3cZOxFyyO8IZAc4RVcycCCAKdM=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
-github.com/koketama/minami58 v0.1.1 h1:Nntj4FmoiSoYwRiBTp0IuaDb7tJfLRGGwOKC+JNv+bE=
-github.com/koketama/minami58 v0.1.1/go.mod h1:tQazOeG8ISWFLu1XEp5+4+aNpNaoQ5755CvWnNRW1Uo=
+github.com/koketama/minami58 v0.1.2 h1:minWCfr56pSKJKTTXlEsvw0gkP9wKt/MypQlUn9/KMA=
+github.com/koketama/minami58 v0.1.2/go.mod h1:tQazOeG8ISWFLu1XEp5+4+aNpNaoQ5755CvWnNRW1Uo=
 github.com/koketama/pbutil v0.1.6 h1:oBKUVZZ+ENQEvu+NUEd7M7EtukxiTl8OfLqSkZQ6hRM=
 github.com/koketama/pbutil v0.1.6/go.mod h1:DeIQOgJHsqVj/vrRT6gotcwWm69Dypaoz1uNXjdZ8hY=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
