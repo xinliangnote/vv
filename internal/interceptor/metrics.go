@@ -9,15 +9,24 @@ const (
 	subsystem = "vv"
 )
 
-// MetricsRequestCost  metrics for request cost
+func init() {
+	prometheus.MustRegister(MetricsRequestCost)
+}
+
+// MetricsRequestCost metrics for ok request cost
 var MetricsRequestCost = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 	Namespace: namespace,
 	Subsystem: subsystem,
 	Name:      "requestcost",
-	Help:      "request(s) cost seconds",
+	Help:      "[ok] request(s) cost seconds",
 	Buckets:   []float64{0.1, 0.3, 0.5, 0.7, 0.9, 1.1},
-}, []string{"method", "code"})
+}, []string{"method"})
 
-func init() {
-	prometheus.MustRegister(MetricsRequestCost)
-}
+// MetricsError metrics for alertmanager
+var MetricsError = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+	Namespace: namespace,
+	Subsystem: subsystem,
+	Name:      "error",
+	Help:      "error(s) alert",
+	Buckets:   []float64{0.1, 0.3, 0.5, 0.7, 0.9, 1.1},
+}, []string{"method", "code", "message", "journal_id"})

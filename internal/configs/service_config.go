@@ -26,8 +26,11 @@ const ServiceConfig = `
           "backoffMultiplier": 1,
           "retryableStatusCodes": [
             "UNAVAILABLE",
-            "INTERNAL",
-            "ABORTED"
+            "DEADLINE_EXCEEDED",
+            "RESOURCE_EXHAUSTED",
+            "FAILED_PRECONDITION",
+            "ABORTED",
+            "DATA_LOSS"
           ]
         }
       }

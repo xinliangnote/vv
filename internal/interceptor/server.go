@@ -243,14 +243,13 @@ func (s *ServerInterceptor) UnaryInterceptor(ctx context.Context, req interface{
 			}
 
 			if err != nil {
-				if s, ok := status.FromError(err); ok {
-					journal.Response.Code = s.Code().String()
-					journal.Response.Message = s.Message()
+				s, _ := status.FromError(err)
+				journal.Response.Code = s.Code().String()
+				journal.Response.Message = s.Message()
 
-					journal.Response.Details = make([]*anypb.Any, len(s.Details()))
-					for i, detail := range s.Details() {
-						journal.Response.Details[i], _ = anypb.New(detail.(proto.Message))
-					}
+				journal.Response.Details = make([]*anypb.Any, len(s.Details()))
+				for i, detail := range s.Details() {
+					journal.Response.Details[i], _ = anypb.New(detail.(proto.Message))
 				}
 			}
 
@@ -284,7 +283,11 @@ func (s *ServerInterceptor) UnaryInterceptor(ctx context.Context, req interface{
 			method = alias
 		}
 
-		MetricsRequestCost.WithLabelValues(method, status.Code(err).String()).Observe(time.Since(ts).Seconds())
+		if err == nil {
+			MetricsRequestCost.WithLabelValues(method).Observe(time.Since(ts).Seconds())
+		} else {
+			MetricsError.WithLabelValues(method, status.Code(err).String(), err.Error(), journalID).Observe(time.Since(ts).Seconds())
+		}
 	}()
 
 	meta, _ := metadata.FromIncomingContext(ctx)
