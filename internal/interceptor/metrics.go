@@ -11,7 +11,10 @@ const (
 
 func init() {
 	prometheus.MustRegister(MetricsRequestCost)
+	prometheus.MustRegister(MetricsError)
 }
+
+// all metrics used by WithPrometheus & WithPrometheusPush
 
 // MetricsRequestCost metrics for ok request cost
 var MetricsRequestCost = prometheus.NewHistogramVec(prometheus.HistogramOpts{

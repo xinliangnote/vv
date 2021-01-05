@@ -40,8 +40,16 @@ func init() {
 	})
 }
 
-func newServer(grpcAddr, prometheusAddr string) *grpc.Server {
-	server, err := vvs.New(logger, vvs.WithPrometheus(prometheusAddr))
+func newServer(grpcAddr, prometheusAddr, pushgatewayAddr string) *grpc.Server {
+	var opt vvs.Option
+	if prometheusAddr != "" {
+		opt = vvs.WithPrometheus(prometheusAddr)
+	}
+	if pushgatewayAddr != "" {
+		opt = vvs.WithPrometheusPush(pushgatewayAddr)
+	}
+
+	server, err := vvs.New(logger, opt)
 	if err != nil {
 		logger.Fatal("new server err", zap.Error(err))
 	}

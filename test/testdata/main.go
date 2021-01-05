@@ -58,7 +58,7 @@ func normalCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx, cancel := context.WithCancel(context.Background())
 
-			server := newServer("127.0.0.1:7070", ":7080")
+			server := newServer("127.0.0.1:7070", ":7080", "")
 			gateway := newGateway(ctx, "127.0.0.1:7070", ":8080")
 
 			time.Sleep(time.Second)
@@ -113,14 +113,16 @@ func serverCmd() *cobra.Command {
 	}
 
 	var (
-		serverAddr     string
-		prometheusAddr string
+		serverAddr      string
+		prometheusAddr  string
+		pushgatewayAddr string
 	)
 	cmd.Flags().StringVar(&serverAddr, "server", "", "server addr")
 	cmd.Flags().StringVar(&prometheusAddr, "prometheus", "", "prometheus addr")
+	cmd.Flags().StringVar(&pushgatewayAddr, "pushgateway", "", "pushgateway addr")
 
 	cmd.Run = func(cmd *cobra.Command, args []string) {
-		server := newServer(serverAddr, prometheusAddr)
+		server := newServer(serverAddr, prometheusAddr, pushgatewayAddr)
 		shutdown.NewHook().Close(
 			func() {
 				server.GracefulStop()
