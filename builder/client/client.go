@@ -3,6 +3,7 @@ package client
 import (
 	"time"
 
+	"github.com/bluekaki/vv/internal/configs"
 	"github.com/bluekaki/vv/internal/interceptor"
 
 	"github.com/pkg/errors"
@@ -109,6 +110,7 @@ func New(endpoint string, options ...Option) (*grpc.ClientConn, error) {
 		grpc.WithKeepaliveParams(*kacp),
 		grpc.WithUnaryInterceptor(clientInterceptor.UnaryInterceptor),
 		grpc.WithStreamInterceptor(clientInterceptor.StreamInterceptor),
+		grpc.WithDefaultServiceConfig(configs.ServiceConfig),
 	}
 
 	if opt.credential == nil {

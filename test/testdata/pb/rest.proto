@@ -22,7 +22,7 @@ service DummyService {
   }
 
   rpc Dummy(entity.HelloRequest) returns (entity.HelloReply) {
-    option (bluekaki.vv.options.journal) = true;
+    option (bluekaki.vv.options.journal) = false;
     option (bluekaki.vv.options.authorization) = {
       name : "userinfo_handler"
     };

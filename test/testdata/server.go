@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"math/rand"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/bluekaki/vv"
@@ -45,7 +47,9 @@ func newServer(grpcAddr, prometheusAddr string) *grpc.Server {
 	}
 
 	pb.RegisterHelloServiceServer(server, new(helloServer), vvs.ParseFileDescriptorP)
-	pb.RegisterDummyServiceServer(server, new(dummyServer), vvs.ParseFileDescriptorP)
+	pb.RegisterDummyServiceServer(server, &dummyServer{
+		rander: rand.New(rand.NewSource(time.Now().UnixNano())),
+	}, vvs.ParseFileDescriptorP)
 
 	go func() {
 		listener, err := net.Listen("tcp", grpcAddr)
@@ -113,6 +117,8 @@ var _ pb.DummyServiceServer = (*dummyServer)(nil)
 
 type dummyServer struct {
 	pb.UnimplementedDummyServiceServer
+	sync.Mutex
+	rander *rand.Rand
 }
 
 func (d *dummyServer) Signup(ctx context.Context, req *pb.HelloRequest) (*pb.HelloReply, error) {
@@ -138,9 +144,16 @@ func (d *dummyServer) Signup(ctx context.Context, req *pb.HelloRequest) (*pb.Hel
 }
 
 func (d *dummyServer) Dummy(ctx context.Context, req *pb.HelloRequest) (*pb.HelloReply, error) {
-	fmt.Printf(">>>>>>>>> Dummy Userinfo: %+v\n", vv.Userinfo(ctx))
+	if vv.Userinfo(ctx) == nil {
+		return nil, errors.New("not login")
+	}
 
-	time.Sleep(time.Millisecond * 50)
+	var ts int
+	d.Lock()
+	ts = d.rander.Intn(100)
+	d.Unlock()
+
+	time.Sleep(time.Millisecond * time.Duration(ts))
 
 	return &pb.HelloReply{
 		SerialKey: req.TrackId,

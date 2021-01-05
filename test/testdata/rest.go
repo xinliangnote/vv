@@ -5,7 +5,6 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -119,11 +118,7 @@ func restPanic(host string) {
 	logger.Info("rest panic", zap.String("resp", string(body)))
 }
 
-func restDummy(ctx context.Context, host string) {
-	var goroutines int
-	flag.IntVar(&goroutines, "goroutines", 1, "concurrent goroutines")
-	flag.Parse()
-
+func restDummy(ctx context.Context, host string, goroutines, payloadSize int) {
 	wg := new(sync.WaitGroup)
 	wg.Add(goroutines)
 
@@ -133,8 +128,7 @@ func restDummy(ctx context.Context, host string) {
 		io.ReadFull(rand.Reader, buf)
 		trackID := hex.EncodeToString(buf)
 
-		// buf = make([]byte, 1<<20)
-		buf = make([]byte, 10)
+		buf = make([]byte, payloadSize)
 		io.ReadFull(rand.Reader, buf)
 		message := hex.EncodeToString(buf)
 
@@ -168,7 +162,9 @@ func restDummy(ctx context.Context, host string) {
 			return
 		}
 
-		logger.Info("rest dummy", zap.String("resp", string(body)))
+		if resp.StatusCode != http.StatusOK {
+			logger.Error("rest dummy", zap.String("resp", string(body)))
+		}
 	}
 
 	for k := 0; k < goroutines; k++ {
@@ -180,7 +176,6 @@ func restDummy(ctx context.Context, host string) {
 					return
 				default:
 					do()
-					return
 				}
 			}
 		}()

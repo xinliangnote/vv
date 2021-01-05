@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/bluekaki/vv/internal/configs"
 	"github.com/bluekaki/vv/internal/interceptor"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -14,6 +15,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/resolver/dns"
 )
 
 var (
@@ -89,10 +91,12 @@ func New(options ...Option) (*runtime.ServeMux, []grpc.DialOption) {
 	gatewayInterceptor := interceptor.NewGatewayInterceptor()
 
 	dialOptions := []grpc.DialOption{
+		grpc.WithResolvers(dns.NewBuilder()),
 		grpc.WithTimeout(dialTimeout),
 		grpc.WithBlock(),
 		grpc.WithKeepaliveParams(*kacp),
 		grpc.WithUnaryInterceptor(gatewayInterceptor.UnaryInterceptor),
+		grpc.WithDefaultServiceConfig(configs.ServiceConfig),
 	}
 
 	if opt.credential == nil {
