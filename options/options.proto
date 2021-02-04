@@ -6,11 +6,22 @@ option go_package = "github.com/bluekaki/vv/options";
 
 import "google/protobuf/descriptor.proto";
 
-message Validator { string name = 1; }
+message Handler { string name = 1; }
 
 extend google.protobuf.MethodOptions {
   optional bool journal = 74370;
-  optional Validator authorization = 74371;
-  optional Validator proxy_authorization = 74372;
+  optional Handler authorization = 74371;
+  optional Handler proxy_authorization = 74372;
   optional string metrics_alias = 74373;
+}
+
+extend google.protobuf.MethodOptions {
+  // for string: not empty; numeric: not zero; bytes: not nil; map: not nil
+  optional bool require = 74374;
+  optional string eq = 74375; // equal to
+  optional string ne = 74376; // not equal to
+  optional string lt = 74377; // less then
+  optional string le = 74378; // less than or equal to
+  optional string gt = 74379; // greater than
+  optional string ge = 74380; // greater than or equal to
 }
