@@ -15,7 +15,7 @@ extend google.protobuf.MethodOptions {
   optional string metrics_alias = 74373;
 }
 
-extend google.protobuf.MethodOptions {
+extend google.protobuf.FieldOptions {
   // for string: not empty; numeric: not zero; bytes: not nil; map: not nil
   optional bool require = 74374;
   optional string eq = 74375; // equal to
