@@ -37,12 +37,12 @@ func (f *fileDescriptor) ParseP(descriptor protoreflect.FileDescriptor) {
 			fullMethod := fmt.Sprintf("/%s/%s", serivce.FullName(), method.Name())
 			f.options[fullMethod] = method.Options()
 
-			if option := proto.GetExtension(method.Options(), options.E_Authorization).(*options.Validator); option != nil &&
+			if option := proto.GetExtension(method.Options(), options.E_Authorization).(*options.Handler); option != nil &&
 				Validator.AuthorizationValidator(option.Name) == nil {
 				panic(fmt.Sprintf("%s options.authorization validator: [%s] not found", fullMethod, option.Name))
 			}
 
-			if option := proto.GetExtension(method.Options(), options.E_ProxyAuthorization).(*options.Validator); option != nil &&
+			if option := proto.GetExtension(method.Options(), options.E_ProxyAuthorization).(*options.Handler); option != nil &&
 				Validator.ProxyAuthorizationValidator(option.Name) == nil {
 				panic(fmt.Sprintf("%s options.proxy_authorization validator: [%s] not found", fullMethod, option.Name))
 			}
