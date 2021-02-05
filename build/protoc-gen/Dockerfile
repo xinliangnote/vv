@@ -30,4 +30,3 @@ VOLUME ["/opt"]
 WORKDIR /opt
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["xxx.proto"]
