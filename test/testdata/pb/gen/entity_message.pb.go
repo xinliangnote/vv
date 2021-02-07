@@ -3,7 +3,6 @@
 package pb
 
 import (
-	errors "github.com/koketama/errors"
 	strings "strings"
 )
 
@@ -31,65 +30,6 @@ func (h *HelloReply) Valid() error {
 
 	// Message string IsExtension: false IsWeak: false IsPacked: false
 	h.Message = strings.TrimSpace(h.Message)
-
-	return nil
-}
-
-func (x *XXX) Valid() error {
-
-	// Message string IsExtension: false IsWeak: false IsPacked: false
-	x.Message = strings.TrimSpace(x.Message)
-
-	// Message string
-	if x.Message == "" {
-		return errors.New("XXX.message required")
-	}
-
-	// Timestamp message
-	if x.Timestamp == nil {
-		return errors.New("XXX.timestamp required")
-	}
-
-	// Duration message
-	if x.Duration == nil {
-		return errors.New("XXX.duration required")
-	}
-	// unknow kind
-	// Status enum FieldDescriptor{Syntax: proto3, FullName: entity.XXX.status, Number: 5, Cardinality: optional, Kind: enum, HasJSONName: true, JSONName: "status", Enum: entity.XXX.Status}
-
-	// Payloads message
-	if x.Payloads == nil {
-		return errors.New("XXX.payloads required")
-	}
-
-	// CnName string IsExtension: false IsWeak: false IsPacked: false
-	x.CnName = strings.TrimSpace(x.CnName)
-
-	// JpName string IsExtension: false IsWeak: false IsPacked: false
-	x.JpName = strings.TrimSpace(x.JpName)
-
-	// Meta message
-	if len(x.Meta) == 0 {
-		return errors.New("XXX.meta required")
-	}
-
-	// X1 string IsExtension: false IsWeak: false IsPacked: false
-	x.X1 = strings.TrimSpace(x.X1)
-
-	// X1 string
-	if !(x.X1 == "x1Value") {
-		return errors.New("XXX.x1 illegal")
-	}
-
-	// X2 uint32
-	if !(x.X2 == 100) {
-		return errors.New("XXX.x2 illegal")
-	}
-
-	// X3 uint32
-	if !(x.X3 >= 123) {
-		return errors.New("XXX.x3 illegal")
-	}
 
 	return nil
 }
