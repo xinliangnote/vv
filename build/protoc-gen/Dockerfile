@@ -12,6 +12,7 @@ RUN cd /opt && git clone https://github.com/googleapis/googleapis.git && \
     cd googleapis && git checkout -b 69697504d9eba1d064820c
 
 RUN go get google.golang.org/protobuf/cmd/protoc-gen-go
+RUN go get github.com/koketama/protoc-gen-message-validator
 RUN go get github.com/bluekaki/vv/cmd/protoc-gen-go-grpc
 RUN chmod +x /go/bin/protoc-gen-grpc-gateway /go/bin/protoc-gen-openapiv2
 RUN chmod +x /opt/entrypoint.sh
