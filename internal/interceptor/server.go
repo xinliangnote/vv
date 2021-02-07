@@ -298,10 +298,10 @@ func (s *ServerInterceptor) UnaryInterceptor(ctx context.Context, req interface{
 		authorizationValidator      userinfoHandler
 		proxyAuthorizationValidator signatureHandler
 	)
-	if option := proto.GetExtension(FileDescriptor.Options(info.FullMethod), options.E_Authorization).(*options.Validator); option != nil {
+	if option := proto.GetExtension(FileDescriptor.Options(info.FullMethod), options.E_Authorization).(*options.Handler); option != nil {
 		authorizationValidator = Validator.AuthorizationValidator(option.Name)
 	}
-	if option := proto.GetExtension(FileDescriptor.Options(info.FullMethod), options.E_ProxyAuthorization).(*options.Validator); option != nil {
+	if option := proto.GetExtension(FileDescriptor.Options(info.FullMethod), options.E_ProxyAuthorization).(*options.Handler); option != nil {
 		proxyAuthorizationValidator = Validator.ProxyAuthorizationValidator(option.Name)
 	}
 
