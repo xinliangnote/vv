@@ -156,15 +156,17 @@ func (g *grpcPayload) Body() string {
 func (g *grpcPayload) t() {}
 
 // NewServerInterceptor create a server interceptor
-func NewServerInterceptor(logger *zap.Logger) *ServerInterceptor {
+func NewServerInterceptor(logger *zap.Logger, enablePrometheus bool) *ServerInterceptor {
 	return &ServerInterceptor{
-		logger: logger,
+		logger:           logger,
+		enablePrometheus: enablePrometheus,
 	}
 }
 
 // ServerInterceptor the server's interceptor
 type ServerInterceptor struct {
-	logger *zap.Logger
+	logger           *zap.Logger
+	enablePrometheus bool
 }
 
 func (s *ServerInterceptor) journalID() string {
@@ -263,30 +265,32 @@ func (s *ServerInterceptor) UnaryInterceptor(ctx context.Context, req interface{
 			}
 		}
 
-		method := info.FullMethod
+		if s.enablePrometheus {
+			method := info.FullMethod
 
-		if http := proto.GetExtension(FileDescriptor.Options(info.FullMethod), annotations.E_Http).(*annotations.HttpRule); http != nil {
-			if x, ok := http.GetPattern().(*annotations.HttpRule_Get); ok {
-				method = "get " + x.Get
-			} else if x, ok := http.GetPattern().(*annotations.HttpRule_Put); ok {
-				method = "put " + x.Put
-			} else if x, ok := http.GetPattern().(*annotations.HttpRule_Post); ok {
-				method = "post " + x.Post
-			} else if x, ok := http.GetPattern().(*annotations.HttpRule_Delete); ok {
-				method = "delete " + x.Delete
-			} else if x, ok := http.GetPattern().(*annotations.HttpRule_Patch); ok {
-				method = "patch " + x.Patch
+			if http := proto.GetExtension(FileDescriptor.Options(info.FullMethod), annotations.E_Http).(*annotations.HttpRule); http != nil {
+				if x, ok := http.GetPattern().(*annotations.HttpRule_Get); ok {
+					method = "get " + x.Get
+				} else if x, ok := http.GetPattern().(*annotations.HttpRule_Put); ok {
+					method = "put " + x.Put
+				} else if x, ok := http.GetPattern().(*annotations.HttpRule_Post); ok {
+					method = "post " + x.Post
+				} else if x, ok := http.GetPattern().(*annotations.HttpRule_Delete); ok {
+					method = "delete " + x.Delete
+				} else if x, ok := http.GetPattern().(*annotations.HttpRule_Patch); ok {
+					method = "patch " + x.Patch
+				}
 			}
-		}
 
-		if alias := proto.GetExtension(FileDescriptor.Options(info.FullMethod), options.E_MetricsAlias).(string); alias != "" {
-			method = alias
-		}
+			if alias := proto.GetExtension(FileDescriptor.Options(info.FullMethod), options.E_MetricsAlias).(string); alias != "" {
+				method = alias
+			}
 
-		if err == nil {
-			MetricsRequestCost.WithLabelValues(method).Observe(time.Since(ts).Seconds())
-		} else {
-			MetricsError.WithLabelValues(method, status.Code(err).String(), err.Error(), journalID).Observe(time.Since(ts).Seconds())
+			if err == nil {
+				MetricsRequestCost.WithLabelValues(method).Observe(time.Since(ts).Seconds())
+			} else {
+				MetricsError.WithLabelValues(method, status.Code(err).String(), err.Error(), journalID).Observe(time.Since(ts).Seconds())
+			}
 		}
 	}()
 
