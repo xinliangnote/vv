@@ -16,6 +16,7 @@ import (
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/resolver/dns"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 var (
@@ -86,6 +87,17 @@ func New(options ...Option) (*runtime.ServeMux, []grpc.DialOption) {
 		runtime.WithErrorHandler(runtime.DefaultHTTPErrorHandler),
 		runtime.WithStreamErrorHandler(runtime.DefaultStreamErrorHandler),
 		runtime.WithRoutingErrorHandler(runtime.DefaultRoutingErrorHandler),
+		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.HTTPBodyMarshaler{
+			Marshaler: &runtime.JSONPb{
+				MarshalOptions: protojson.MarshalOptions{
+					UseProtoNames:   true,
+					EmitUnpopulated: true,
+				},
+				UnmarshalOptions: protojson.UnmarshalOptions{
+					DiscardUnknown: true,
+				},
+			},
+		}),
 	)
 
 	gatewayInterceptor := interceptor.NewGatewayInterceptor()
