@@ -70,10 +70,9 @@ func New(logger *zap.Logger, options ...Option) (*grpc.Server, error) {
 		f(opt)
 	}
 
-	if opt.prometheusHandler == nil {
-		panic("must enable prometheus metrics")
+	if opt.prometheusHandler != nil {
+		opt.prometheusHandler(logger)
 	}
-	opt.prometheusHandler(logger)
 
 	enforcementPolicy := defaultEnforcementPolicy
 	if opt.enforcementPolicy != nil {
