@@ -84,7 +84,7 @@ func New(logger *zap.Logger, options ...Option) (*grpc.Server, error) {
 		keepalive = opt.keepalive
 	}
 
-	serverInterceptor := interceptor.NewServerInterceptor(logger)
+	serverInterceptor := interceptor.NewServerInterceptor(logger, opt.prometheusHandler != nil)
 
 	serverOptions := []grpc.ServerOption{
 		grpc.KeepaliveEnforcementPolicy(*enforcementPolicy),
