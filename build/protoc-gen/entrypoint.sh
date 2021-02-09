@@ -1,6 +1,7 @@
 #!/bin/sh
 
-mkdir -p api gen
+rm -rf api gen
+mkdir api gen
 
 protoc -I/usr/local/include -I. --proto_path=. \
 --go_out=gen \
