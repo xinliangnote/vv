@@ -189,8 +189,13 @@ func genService(gen *protogen.Plugin, file *protogen.File, g *protogen.Generated
 	g.P("s.RegisterService(&", serviceDescVar, `, srv)`)
 
 	// TODO new features
+	prefix := file.GeneratedFilenamePrefix
+	if index := strings.LastIndex(prefix, "/"); index != -1 {
+		prefix = prefix[index+1:]
+	}
+
 	g.P(`if descriptorHandler == nil { panic("descriptorHandler required") }`)
-	g.P("descriptorHandler(File_", file.Desc.Package().Name(), "_proto)")
+	g.P("descriptorHandler(File_", prefix, "_proto)")
 
 	g.P("}")
 	g.P()
